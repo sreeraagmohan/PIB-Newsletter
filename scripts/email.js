@@ -1,6 +1,7 @@
 // Shared email helpers. Uses Gmail SMTP via nodemailer.
 
 const nodemailer = require('nodemailer');
+const { normalizePibUrl } = require('./pib');
 
 let _transporter;
 function transporter() {
@@ -60,7 +61,7 @@ function breakingAlertHtml({ title, headline, url, unsubscribeUrl }) {
 
     <div style="background:#ffffff;padding:24px 28px;">
       <p style="margin:0 0 24px;color:#334155;font-size:15px;line-height:1.75;">${esc(headline)}</p>
-      <a href="${url}" style="display:inline-block;background:#FF9933;color:#1a0f00;padding:12px 22px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:700;">Read full release →</a>
+      <a href="${normalizePibUrl(url)}" style="display:inline-block;background:#FF9933;color:#1a0f00;padding:12px 22px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:700;">Read full release →</a>
     </div>
 
     <div style="padding:14px 28px;border-top:1px solid #e2e8f0;background:#f8fafc;">
@@ -88,7 +89,7 @@ function digestHtml({ dateLabel, bullets, topArticles, unsubscribeUrl }) {
   const articleLinks = topArticles.slice(0, 6).map(a => `
     <tr>
       <td style="padding:8px 0;border-bottom:1px solid #f1f5f9;">
-        <a href="${a.url}" style="color:#0f1117;font-size:13px;text-decoration:none;font-weight:500;">${esc(a.title)}</a>
+        <a href="${normalizePibUrl(a.url)}" style="color:#0f1117;font-size:13px;text-decoration:none;font-weight:500;">${esc(a.title)}</a>
         <span style="display:inline-block;margin-left:8px;background:#fff7ed;color:#c2410c;font-size:11px;padding:1px 7px;border-radius:4px;vertical-align:middle;">${esc((a.category || 'general').replace(/_/g, ' '))}</span>
       </td>
     </tr>`).join('');
@@ -142,7 +143,7 @@ function topicDigestHtml({ dateLabel, topicNames, bullets, topArticles, unsubscr
   const articleLinks = topArticles.slice(0, 8).map(a => `
     <tr>
       <td style="padding:8px 0;border-bottom:1px solid #f1f5f9;">
-        <a href="${a.url}" style="color:#0f1117;font-size:13px;text-decoration:none;font-weight:500;">${esc(a.title)}</a>
+        <a href="${normalizePibUrl(a.url)}" style="color:#0f1117;font-size:13px;text-decoration:none;font-weight:500;">${esc(a.title)}</a>
         <span style="display:inline-block;margin-left:8px;background:#f0fdf4;color:#166534;font-size:11px;padding:1px 7px;border-radius:4px;vertical-align:middle;">${esc((a.topics || []).join(', ') || a.category || 'general')}</span>
       </td>
     </tr>`).join('');

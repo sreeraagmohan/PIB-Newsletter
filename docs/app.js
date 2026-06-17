@@ -133,8 +133,8 @@ async function loadLatestDigest() {
     return;
   }
 
-  const dateLabel = new Date(digest.date).toLocaleDateString('en-IN', {
-    weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC',
+  const dateLabel = new Date(`${digest.date}T12:00:00+05:30`).toLocaleDateString('en-IN', {
+    weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Kolkata',
   });
 
   container.innerHTML = `

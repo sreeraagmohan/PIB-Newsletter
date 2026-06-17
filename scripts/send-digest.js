@@ -6,6 +6,7 @@
 const Anthropic = require('@anthropic-ai/sdk');
 const { createClient } = require('@supabase/supabase-js');
 const { sendEmail, digestHtml, topicDigestHtml } = require('./email');
+const { getIstCalendarDate, getIstDateLabel, getIstStartOfDayUtcIso } = require('./pib');
 
 const DIGEST_THRESHOLD = 5;
 const TOPIC_THRESHOLD  = 4; // lower bar — catches MOSPI/commerce releases that score 5 globally
@@ -22,14 +23,10 @@ async function main() {
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
-  // Start of today in IST (UTC+5:30)
-  const nowIST = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
-  const todayIST = nowIST.toISOString().split('T')[0];
-  const startOfDayUTC = new Date(`${todayIST}T00:00:00+05:30`).toISOString();
-
-  const dateLabel = nowIST.toLocaleDateString('en-IN', {
-    weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Kolkata',
-  });
+  // Today in IST
+  const todayIST = getIstCalendarDate();
+  const startOfDayUTC = getIstStartOfDayUtcIso();
+  const dateLabel = getIstDateLabel();
 
   const siteUrl = process.env.SITE_URL;
 

@@ -7,6 +7,7 @@ const Parser = require('rss-parser');
 const Anthropic = require('@anthropic-ai/sdk');
 const { createClient } = require('@supabase/supabase-js');
 const { sendEmail, breakingAlertHtml } = require('./email');
+const { normalizePibUrl, getPrid } = require('./pib');
 
 // PIB RSS feed — Lang=1 English, Regid=3&reg=3 All India
 // ModId=6 is the main English all-ministry feed (others return 404)
@@ -33,9 +34,15 @@ async function main() {
     else console.warn(`Feed ${PIB_RSS_FEEDS[i]} failed:`, r.reason.message);
   });
 
+  // Normalize RSS iframe URLs to the public release page
+  const normalizedItems = allItems.map(item => ({
+    ...item,
+    link: normalizePibUrl(item.link),
+  }));
+
   // Deduplicate by URL
   const seen = new Set();
-  const uniqueItems = allItems.filter(item => {
+  const uniqueItems = normalizedItems.filter(item => {
     if (!item.link || seen.has(item.link)) return false;
     seen.add(item.link);
     return true;
@@ -43,15 +50,17 @@ async function main() {
 
   if (!uniqueItems.length) { console.log('No items found.'); return; }
 
-  // Check which are already stored
+  // Check which are already stored (match by PRID — DB may have old iframe URLs)
   const { data: existing } = await supabase
     .from('articles')
     .select('url')
-    .in('url', uniqueItems.map(i => i.link));
+    .gte('published_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString());
 
-  const existingUrls = new Set((existing || []).map(e => e.url));
+  const existingPrids = new Set(
+    (existing || []).map(e => getPrid(e.url)).filter(Boolean),
+  );
   const newItems = uniqueItems
-    .filter(i => !existingUrls.has(i.link))
+    .filter(i => !existingPrids.has(getPrid(i.link)))
     .slice(0, MAX_NEW_PER_RUN); // most recent first (feeds are newest-first)
   console.log(`${uniqueItems.length} total, ${newItems.length} new (capped at ${MAX_NEW_PER_RUN})`);
 
