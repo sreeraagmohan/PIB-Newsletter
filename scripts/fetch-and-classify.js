@@ -88,12 +88,14 @@ async function main() {
 
 async function classify(anthropic, item) {
   const body = [item.contentSnippet, item.summary, item.content]
-    .filter(Boolean).join(' ').slice(0, 600);
+    .filter(Boolean).join(' ').slice(0, 2000);
 
   const prompt = `Classify this Indian government press release for news significance.
 
 Title: ${item.title}
 Content: ${body || '(no body)'}
+
+IMPORTANT: When writing the headline, use only the names of people and places exactly as they appear in the Title and Content above. Do not substitute or infer names from prior knowledge.
 
 Score 1–10. Score 7+ if it involves:
 - PM Modi foreign visits, bilateral summits, joint statements, MoUs
